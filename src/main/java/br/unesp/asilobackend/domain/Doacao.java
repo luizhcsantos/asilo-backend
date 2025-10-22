@@ -1,18 +1,28 @@
 package br.unesp.asilobackend.domain;
 
-import br.unesp.asilobackend.domain.enums.MeioPagamento;
 import br.unesp.asilobackend.domain.enums.TipoDoacao;
+import br.unesp.asilobackend.domain.enums.MeioPagamento;
 
 import java.util.Date;
 
 public class Doacao {
 
-    private int doacao_id;
-    private float valor;
-    private Date data_doacao;
-    private TipoDoacao tipo_doacao;
-    private boolean doacao_status;
-    private MeioPagamento meio_pagamento;
-    private boolean anonima;
-    private int doador_id;
+	private int doacao_id;
+
+	private float doacao_valor;
+
+	private TipoDoacao doacao_tipo;
+
+	private Date doacao_data;
+
+	private boolean doacao_status;
+
+	private MeioPagamento doacao_meio_pagamento;
+
+	private boolean doacao_anonima;
+
+	private int assinatura_id;
+
+	private int doador_id;
+
 }

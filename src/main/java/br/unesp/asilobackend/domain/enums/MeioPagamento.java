@@ -1,6 +1,8 @@
 package br.unesp.asilobackend.domain.enums;
 
 public enum MeioPagamento {
-    PIX,
+
+	PIX,
     BOLETO
+
 }

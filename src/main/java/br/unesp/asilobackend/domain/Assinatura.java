@@ -7,12 +7,18 @@ import java.util.Date;
 
 public class Assinatura {
 
-    private int id;
-    private float valor;
-    private PeriodicidadeAssinatura periodicidade;
-    private MeioPagamento meio_pagamento;
-    private Date data_inicio;
-    private boolean status;
-    private int doador_id;
+	private int assinatura_id;
+
+	private float assinatura_valor;
+
+	private PeriodicidadeAssinatura assinatura_periodicidade;
+
+	private MeioPagamento assinatura_meio_pagamento;
+
+	private Date assinatura_data_inicio;
+
+	private boolean assinatura_status;
+
+	private int doador_id;
 
 }
