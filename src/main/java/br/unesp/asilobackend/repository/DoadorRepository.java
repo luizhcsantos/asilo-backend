@@ -56,7 +56,7 @@ public class DoadorRepository {
             doadores.add(doador);
         } else {
             Optional<Doador> existente = doadores.stream()
-                    // CORREÇÃO: Checagem de nulo para evitar NPE na lista
+                    // Checagem de nulo para evitar NPE na lista
                     .filter(d -> d.getDoadorId() != null && d.getDoadorId().equals(doador.getDoadorId()))
                     .findFirst();
             if (existente.isPresent()) {

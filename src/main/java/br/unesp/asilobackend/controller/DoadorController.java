@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/doador")
@@ -30,7 +31,7 @@ public class DoadorController {
             PessoaFisica novoDoador = doadorService.salvarPessoaFisica(pessoa);
             return ResponseEntity.ok(novoDoador);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
 	}
 
@@ -40,7 +41,7 @@ public class DoadorController {
             PessoaJuridica novoDoador = doadorService.salvarPessoaJuridica(pessoa);
             return ResponseEntity.ok(novoDoador);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
 	}
 
