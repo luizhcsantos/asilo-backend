@@ -1,21 +1,47 @@
 package br.unesp.asilobackend.controller;
 
+import br.unesp.asilobackend.domain.PessoaFisica;
+import br.unesp.asilobackend.domain.PessoaJuridica;
 import br.unesp.asilobackend.dto.PessoaFisicaDTO;
 import br.unesp.asilobackend.dto.PessoaJuridicaDTO;
 import br.unesp.asilobackend.dto.DoacaoCreateDTO;
 import br.unesp.asilobackend.dto.DoacaoDetailDTO;
 import br.unesp.asilobackend.dto.AssinaturaDTO;
+import br.unesp.asilobackend.service.DoadorService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@RestController
+@RequestMapping("/api/doador")
 public class DoadorController {
 
-	public boolean realizarCadastroPessoaFisica(PessoaFisicaDTO pessoa) {
-		return false;
+    @Autowired
+    private DoadorService doadorService;
+
+    @PostMapping("/pf")
+	public ResponseEntity<?> realizarCadastroPessoaFisica(@RequestBody PessoaFisicaDTO pessoa) {
+        try {
+            PessoaFisica novoDoador = doadorService.salvarPessoaFisica(pessoa);
+            return ResponseEntity.ok(novoDoador);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("error: " + e.getMessage());
+        }
 	}
 
-	public boolean realizarCadastroPessoaJuridica(PessoaJuridicaDTO pessoa) {
-		return false;
+    @PostMapping("/pj")
+	public ResponseEntity<?> realizarCadastroPessoaJuridica(PessoaJuridicaDTO pessoa) {
+        try {
+            PessoaJuridica novoDoador = doadorService.salvarPessoaJuridica(pessoa);
+            return ResponseEntity.ok(novoDoador);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("error: " + e.getMessage());
+        }
 	}
 
 	public boolean efetuarLogin(String emal, String senha) {
@@ -30,7 +56,7 @@ public class DoadorController {
 		return null;
 	}
 
-	public void gerenciarAssianatura(AssinaturaDTO assinatura) {
+	public void gerenciarAssinatura(AssinaturaDTO assinatura) {
 
 	}
 

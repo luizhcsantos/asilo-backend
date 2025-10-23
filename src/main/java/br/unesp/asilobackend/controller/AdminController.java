@@ -2,13 +2,15 @@ package br.unesp.asilobackend.controller;
 
 import br.unesp.asilobackend.dto.DoacaoDetailDTO;
 
+import java.util.List;
+
 public class AdminController {
 
-	public consultarInadiplentes() {
+	public void consultarInadiplentes() {
 
 	}
 
-	public list<DoacaoDetailDTO> consultarDoacoes() {
+	public List<DoacaoDetailDTO> consultarDoacoes() {
 		return null;
 	}
 

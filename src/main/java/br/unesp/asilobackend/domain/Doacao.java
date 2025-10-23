@@ -3,11 +3,14 @@ package br.unesp.asilobackend.domain;
 import br.unesp.asilobackend.domain.enums.TipoDoacao;
 import br.unesp.asilobackend.domain.enums.MeioPagamento;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Doacao {
+public class Doacao implements Serializable {
 
-	private int doacao_id;
+    private static final long serialVersionUID = 1L;
+
+    private int doacao_id;
 
 	private float doacao_valor;
 

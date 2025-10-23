@@ -2,11 +2,14 @@ package br.unesp.asilobackend.domain;
 
 import br.unesp.asilobackend.domain.enums.TipoNotificacao;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Notificacao {
+public class Notificacao implements Serializable  {
 
-	private int notificacao_id;
+    private static final long serialVersionUID = 1L;
+
+    private int notificacao_id;
 
 	private TipoNotificacao notificacao_tipo;
 

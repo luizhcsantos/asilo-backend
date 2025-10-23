@@ -1,8 +1,11 @@
 package br.unesp.asilobackend.domain;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Pagamento {
+public class Pagamento implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private int id;
     private float valor;

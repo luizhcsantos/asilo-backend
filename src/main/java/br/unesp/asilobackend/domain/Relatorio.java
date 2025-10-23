@@ -1,8 +1,12 @@
 package br.unesp.asilobackend.domain;
 
-public class Relatorio {
+import java.io.Serializable;
 
-	private int relatorio_id;
+public class Relatorio implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private int relatorio_id;
 
 	private String relatorio_periodo;
 

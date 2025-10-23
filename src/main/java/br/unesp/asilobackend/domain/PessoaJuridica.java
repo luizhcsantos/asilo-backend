@@ -1,11 +1,22 @@
 package br.unesp.asilobackend.domain;
 
-public class PessoaJuridica extends Doador  {
+import lombok.Getter;
+import lombok.Setter;
 
-	private String pessoa_juridica_nome;
+import java.io.Serial;
+import java.io.Serializable;
 
-	private String pessoa_juridica_cnpj;
+@Setter
+@Getter
+public class PessoaJuridica extends Doador implements Serializable {
 
-	private String pessoa_juridica_nome_fantasia;
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private String pessoaJuridicaNome;
+
+	private String pessoaJuridicaCnpj;
+
+	private String pessoaJuridicaNomeFantasia;
 
 }

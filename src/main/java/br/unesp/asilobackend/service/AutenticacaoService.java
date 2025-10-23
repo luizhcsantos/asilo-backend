@@ -1,8 +1,10 @@
 package br.unesp.asilobackend.service;
 
 import br.unesp.asilobackend.domain.enums.TipoDoador;
+import org.springframework.stereotype.Service;
 
-public class AutentificacaoService {
+@Service
+public class AutenticacaoService {
 
 	public boolean login(TipoDoador tipo, String email, String senha) {
 		return false;
@@ -12,4 +14,7 @@ public class AutentificacaoService {
 
 	}
 
+    public String autenticar(String username, String password) {
+        return null;
+    }
 }

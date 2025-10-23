@@ -1,9 +1,21 @@
 package br.unesp.asilobackend.dto;
 
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class PessoaFisicaDTO {
 
-	private String pessoa_fisica_dto_nome;
+	private String pessoaFisicaDtoNome;
 
-	private String pessoa_fisica_dto_cpf;
+	private String pessoaFisicaDtoCpf;
+
+    private String pessoaFisicaDtoEmail;
+
+    private String pessoaFisicaDtoTelefone;
+
+    private String pessoaFisicaDtoSenha;
 
 }

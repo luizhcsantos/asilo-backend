@@ -1,13 +1,24 @@
 package br.unesp.asilobackend.domain;
 
-public class Administrador {
+import lombok.Getter;
+import lombok.Setter;
 
-	private int admin_id;
+import java.io.Serial;
+import java.io.Serializable;
 
-	private String admin_nome;
+@Setter
+@Getter
+public class Administrador implements Serializable {
 
-	private String admin_email;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	private String admin_senha;
+	private int adminId;
+
+	private String adminNome;
+
+	private String adminEmail;
+
+	private String adminSenha;
 
 }
