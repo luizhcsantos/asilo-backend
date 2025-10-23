@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -23,7 +24,9 @@ public class DoadorRepository {
 
         List<Doador> doadores = lerTodos();
         long maxId = doadores.stream()
-                .mapToLong(Doador::getDoadorId)
+                .map(Doador::getDoadorId) // Primeiro mapeia para o objeto Long
+                .filter(Objects::nonNull)   // Filtra os que são nulos
+                .mapToLong(Long::longValue) // Converte para long (agora seguro)
                 .max()
                 .orElse(0L);
         this.idGenerator.set(maxId);
@@ -47,28 +50,29 @@ public class DoadorRepository {
     public synchronized Doador save(Doador doador) {
         List<Doador> doadores = lerTodos();
 
-        if (doador.getDoadorId() == 0) {
+        // CORREÇÃO: DoadorId é Long (objeto), checar por 'null', não '== 0'
+        if (doador.getDoadorId() == null) {
             doador.setDoadorId(idGenerator.incrementAndGet());
             doadores.add(doador);
         } else {
             Optional<Doador> existente = doadores.stream()
-                    .filter(d -> d.getDoadorId().equals(doador.getDoadorId()))
+                    // CORREÇÃO: Checagem de nulo para evitar NPE na lista
+                    .filter(d -> d.getDoadorId() != null && d.getDoadorId().equals(doador.getDoadorId()))
                     .findFirst();
             if (existente.isPresent()) {
                 doadores.remove(existente.get());
-                doadores.add(doador);
-            } else {
-                doadores.add(doador);
             }
+            // Adiciona o doador (novo ou atualizado)
+            doadores.add(doador);
         }
         salvarTodos(doadores);
         return doador;
-
     }
 
-    public Optional<Doador> findById(Long id) {
+    public Optional<Doador> buscarPorId(Long id) {
         return lerTodos().stream()
-                .filter(d -> d.getDoadorId().equals(id))
+                // CORREÇÃO: Checagem de nulo para evitar NPE
+                .filter(d -> d.getDoadorId() != null && d.getDoadorId().equals(id))
                 .findFirst();
     }
 
@@ -78,10 +82,10 @@ public class DoadorRepository {
 
     public Optional<Doador> buscarPorEmail(String email) {
         return lerTodos().stream()
-                .filter(d -> d.getDoadorEmail().equalsIgnoreCase(email))
+                // CORREÇÃO: Checagem de nulo para evitar NPE
+                .filter(d -> d.getDoadorEmail() != null && d.getDoadorEmail().equalsIgnoreCase(email))
                 .findFirst();
     }
-
 
 
 	public Optional<PessoaFisica> buscarPorCpf(String cpf) {

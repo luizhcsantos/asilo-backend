@@ -1,7 +1,6 @@
 package br.unesp.asilobackend.repository;
 
 import br.unesp.asilobackend.domain.Administrador;
-import br.unesp.asilobackend.domain.Doador;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -30,8 +29,8 @@ public class AdministradorRepository {
     public List<Administrador> lerTodos() {
         Object data = serializer.lerArquivo(FILE_NAME);
         if (data instanceof List<?> list) {
-            // Verifica se os objetos na lista são instâncias de Doador
-            if (!list.isEmpty() && list.get(0) instanceof Doador) {
+            // CORREÇÃO: Deve checar por Administrador, não Doador
+            if (!list.isEmpty() && list.get(0) instanceof Administrador) {
                 return (List<Administrador>) list;
             }
         }
@@ -40,10 +39,7 @@ public class AdministradorRepository {
 
     public Optional<Administrador> buscarPorEmail(String email) {
         return lerTodos().stream()
-                .filter(a -> a.getAdminEmail().equalsIgnoreCase(email))
+                .filter(a -> a.getAdminEmail() != null && a.getAdminEmail().equalsIgnoreCase(email))
                 .findFirst();
     }
-
 }
-
-
