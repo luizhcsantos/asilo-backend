@@ -1,5 +1,6 @@
 package br.unesp.asilobackend.config;
 
+import org.springframework.beans.factory.annotation.Autowired; // <-- IMPORTAR
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -9,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // <-- IMPORTAR
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -16,32 +18,33 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private SecurityFilter securityFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Habilita o CORS usando a configuração da WebConfig
                 .cors(withDefaults())
-
-                // 2. Desabilita o CSRF (ESSENCIAL para APIs REST)
                 .csrf(csrf -> csrf.disable())
-
-                // 3. Define a política de sessão como STATELESS (não guarda estado)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 4. Configura as permissões de requisição
                 .authorizeHttpRequests(authorize -> authorize
-                        // 4a. Permite TODAS as requisições OPTIONS (para o "preflight" do CORS)
+                        // Endpoints Públicos (Cadastro e Login)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // 4b. Permite os endpoints públicos de cadastro e login
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/doador/pf").permitAll()
                         .requestMatchers("/api/doador/pj").permitAll()
 
-                        // 4c. Exige autenticação para todas as outras requisições
+                        // Endpoints Protegidos por Papel (ROLE)
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/doador/**").hasRole("DOADOR")
+
+                        // Todas as outras requisições devem estar autenticadas
                         .anyRequest().authenticated()
-                );
+                )
+                // Diz ao Spring para rodar o filtro customizado
+                // antes do filtro padrão de autenticação.
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

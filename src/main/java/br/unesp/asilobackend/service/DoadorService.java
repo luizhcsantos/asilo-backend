@@ -1,5 +1,6 @@
 package br.unesp.asilobackend.service;
 
+import br.unesp.asilobackend.domain.Doador;
 import br.unesp.asilobackend.domain.PessoaFisica;
 import br.unesp.asilobackend.domain.PessoaJuridica;
 import br.unesp.asilobackend.domain.enums.TipoDoador;
@@ -88,5 +89,10 @@ public class DoadorService {
 
         // Salva no arquivo usando o novo repositório
         return (PessoaJuridica) doadorRepository.save(pj);
+    }
+
+    public Doador buscarporId(Long id) throws Exception {
+        return doadorRepository.buscarPorId(id)
+                .orElseThrow(() -> new Exception("Doador não encontrado com a ID "+ id));
     }
 }

@@ -43,14 +43,13 @@ public class DoadorRepository {
         return new ArrayList<>();
     }
 
-    public boolean salvarTodos(List<Doador> doadores) {
-		return serializer.escreverArquivo(doadores, FILE_NAME);
+    public void salvarTodos(List<Doador> doadores) {
+		serializer.escreverArquivo(doadores, FILE_NAME);
 	}
 
     public synchronized Doador save(Doador doador) {
         List<Doador> doadores = lerTodos();
 
-        // CORREÇÃO: DoadorId é Long (objeto), checar por 'null', não '== 0'
         if (doador.getDoadorId() == null) {
             doador.setDoadorId(idGenerator.incrementAndGet());
             doadores.add(doador);
@@ -65,18 +64,21 @@ public class DoadorRepository {
             // Adiciona o doador (novo ou atualizado)
             doadores.add(doador);
         }
-        salvarTodos(doadores);
+        boolean salvou = serializer.escreverArquivo(doadores, FILE_NAME);
+        if (!salvou) {
+            throw new RuntimeException("Erro ao salvar no arquivo.");
+        }
         return doador;
     }
 
     public Optional<Doador> buscarPorId(Long id) {
         return lerTodos().stream()
-                // CORREÇÃO: Checagem de nulo para evitar NPE
+                // Checagem de nulo para evitar NPE
                 .filter(d -> d.getDoadorId() != null && d.getDoadorId().equals(id))
                 .findFirst();
     }
 
-    public List<Doador> findAll() {
+    public List<Doador> buscarTodos() {
         return lerTodos();
     }
 

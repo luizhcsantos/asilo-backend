@@ -1,5 +1,6 @@
 package br.unesp.asilobackend.controller;
 
+import br.unesp.asilobackend.domain.Doador;
 import br.unesp.asilobackend.domain.PessoaFisica;
 import br.unesp.asilobackend.domain.PessoaJuridica;
 import br.unesp.asilobackend.dto.PessoaFisicaDTO;
@@ -10,10 +11,7 @@ import br.unesp.asilobackend.dto.AssinaturaDTO;
 import br.unesp.asilobackend.service.DoadorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +43,7 @@ public class DoadorController {
         }
 	}
 
-	public boolean efetuarLogin(String emal, String senha) {
+	public boolean efetuarLogin(String email, String senha) {
 		return false;
 	}
 
@@ -68,5 +66,14 @@ public class DoadorController {
 	public boolean recuperarSenha(String email) {
 		return false;
 	}
+
+    public ResponseEntity<?> getDoadorPorId(@PathVariable Long id) {
+        try {
+            Doador doador = doadorService.buscarporId(id);
+            return ResponseEntity.ok(doador);
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
+    }
 
 }
