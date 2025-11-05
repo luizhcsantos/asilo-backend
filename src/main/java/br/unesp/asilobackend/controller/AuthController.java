@@ -35,4 +35,21 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Credenciais inválidas"));
         }
     }
+
+    /**
+     * 1. Solicitar recuperação de senha
+     * (Conforme diagrama: +solicitarRecuperacaoSenha(email): boolean)
+     *
+     */
+    @PostMapping("/recuperar-senha")
+    public ResponseEntity<?> solicitarRecuperacaoSenha(@RequestBody Map<String, String> payload) {
+        // Espera um JSON {"email": "..."}
+        try {
+            String email = payload.get("email");
+            boolean sucesso = autenticacaoService.solicitarRecuperacaoSenha(email);
+            return ResponseEntity.ok(Map.of("success", sucesso));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

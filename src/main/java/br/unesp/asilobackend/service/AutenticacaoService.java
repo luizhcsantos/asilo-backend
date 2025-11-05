@@ -2,7 +2,6 @@ package br.unesp.asilobackend.service;
 
 import br.unesp.asilobackend.domain.Administrador;
 import br.unesp.asilobackend.domain.Doador;
-import br.unesp.asilobackend.domain.enums.TipoDoador; // Mantido se 'login' antigo for usado
 import br.unesp.asilobackend.repository.AdministradorRepository;
 import br.unesp.asilobackend.repository.DoadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +29,9 @@ public class AutenticacaoService {
         if (doadorOpt.isPresent()) {
             Doador doador = doadorOpt.get();
             // 1a. Verifica se a senha bate
-            if (passwordEncoder.matches(password, doador.getDoadorSenha())) {
+            if (passwordEncoder.matches(password, doador.getSenhaHash())) {
                 // Sucesso! Retorna um "token" simples.
-                return "token-doador-" + doador.getDoadorId();
+                return "token-doador-" + doador.getId();
             }
         }
 
@@ -41,9 +40,9 @@ public class AutenticacaoService {
         if (adminOpt.isPresent()) {
             Administrador admin = adminOpt.get();
             // 2a. Verifica se a senha bate
-            if (passwordEncoder.matches(password, admin.getAdminSenha())) {
+            if (passwordEncoder.matches(password, admin.getSenhaHash())) {
                 // Sucesso! Retorna um "token" simples.
-                return "token-admin-" + admin.getAdminId();
+                return "token-admin-" + admin.getId();
             }
         }
 
@@ -51,12 +50,8 @@ public class AutenticacaoService {
         throw new Exception("Credenciais inválidas");
     }
 
-    // Métodos antigos
-    public boolean login(TipoDoador tipo, String email, String senha) {
-        return false;
-    }
 
-    public void recuperarSenha(String email) {
-        // Lógica de recuperação de senha (futura)
+    public boolean solicitarRecuperacaoSenha(String email) {
+        return false;
     }
 }

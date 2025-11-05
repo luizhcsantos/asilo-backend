@@ -1,6 +1,5 @@
 package br.unesp.asilobackend.dto;
 
-import br.unesp.asilobackend.domain.enums.TipoDoacao;
 import br.unesp.asilobackend.domain.enums.MeioPagamento;
 
 import java.util.Date;

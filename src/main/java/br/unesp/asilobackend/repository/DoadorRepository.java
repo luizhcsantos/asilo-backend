@@ -1,15 +1,16 @@
 package br.unesp.asilobackend.repository;
 
-import br.unesp.asilobackend.domain.Doador;
-import br.unesp.asilobackend.domain.PessoaFisica;
-import br.unesp.asilobackend.domain.PessoaJuridica;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.springframework.stereotype.Repository;
+
+import br.unesp.asilobackend.domain.Doador;
+import br.unesp.asilobackend.domain.PessoaFisica;
+import br.unesp.asilobackend.domain.PessoaJuridica;
 
 @Repository
 public class DoadorRepository {
@@ -22,13 +23,13 @@ public class DoadorRepository {
     public DoadorRepository() {
         this.serializer = new ArquivoSerializer();
 
-        List<Doador> doadores = lerTodos();
-        long maxId = doadores.stream()
-                .map(Doador::getDoadorId) // Primeiro mapeia para o objeto Long
-                .filter(Objects::nonNull)   // Filtra os que são nulos
-                .mapToLong(Long::longValue) // Converte para long (agora seguro)
-                .max()
-                .orElse(0L);
+    List<Doador> doadores = lerTodos();
+    long maxId = doadores.stream()
+        .map(Doador::getId) // usa getId do Usuario
+        .filter(Objects::nonNull)
+        .mapToLong(Long::longValue)
+        .max()
+        .orElse(0L);
         this.idGenerator.set(maxId);
     }
 
@@ -50,13 +51,13 @@ public class DoadorRepository {
     public synchronized Doador save(Doador doador) {
         List<Doador> doadores = lerTodos();
 
-        if (doador.getDoadorId() == null) {
-            doador.setDoadorId(idGenerator.incrementAndGet());
+        if (doador.getId() == null) {
+            doador.setId(idGenerator.incrementAndGet());
             doadores.add(doador);
         } else {
             Optional<Doador> existente = doadores.stream()
                     // Checagem de nulo para evitar NPE na lista
-                    .filter(d -> d.getDoadorId() != null && d.getDoadorId().equals(doador.getDoadorId()))
+                    .filter(d -> d.getId() != null && d.getId().equals(doador.getId()))
                     .findFirst();
             if (existente.isPresent()) {
                 doadores.remove(existente.get());
@@ -74,7 +75,7 @@ public class DoadorRepository {
     public Optional<Doador> buscarPorId(Long id) {
         return lerTodos().stream()
                 // Checagem de nulo para evitar NPE
-                .filter(d -> d.getDoadorId() != null && d.getDoadorId().equals(id))
+                .filter(d -> d.getId() != null && d.getId().equals(id))
                 .findFirst();
     }
 
@@ -85,7 +86,7 @@ public class DoadorRepository {
     public Optional<Doador> buscarPorEmail(String email) {
         return lerTodos().stream()
                 // CORREÇÃO: Checagem de nulo para evitar NPE
-                .filter(d -> d.getDoadorEmail() != null && d.getDoadorEmail().equalsIgnoreCase(email))
+                .filter(d -> d.getEmail() != null && d.getEmail().equalsIgnoreCase(email))
                 .findFirst();
     }
 
@@ -94,7 +95,7 @@ public class DoadorRepository {
         return lerTodos().stream()
                 .filter(d -> d instanceof PessoaFisica)
                 .map(d -> (PessoaFisica) d)
-                .filter(pf -> pf.getPessoaFisicaCpf() != null && pf.getPessoaFisicaCpf().equals(cpf))
+                .filter(pf -> pf.getCpf() != null && pf.getCpf().equals(cpf))
                 .findFirst();
 	}
 
@@ -102,7 +103,7 @@ public class DoadorRepository {
         return lerTodos().stream()
                 .filter(d -> d instanceof PessoaJuridica)
                 .map(d -> (PessoaJuridica) d)
-                .filter(pj -> pj.getPessoaJuridicaCnpj() != null && pj.getPessoaJuridicaCnpj().equals(cnpj))
+        .filter(pj -> pj.getCnpj() != null && pj.getCnpj().equals(cnpj))
                 .findFirst();
 	}
 

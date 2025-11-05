@@ -1,12 +1,14 @@
 package br.unesp.asilobackend.repository;
 
-import br.unesp.asilobackend.domain.Administrador;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.springframework.stereotype.Repository;
+
+import br.unesp.asilobackend.domain.Administrador;
 
 @Repository
 public class AdministradorRepository {
@@ -18,11 +20,13 @@ public class AdministradorRepository {
     public AdministradorRepository() {
         this.serializer = new ArquivoSerializer();
 
-        List<Administrador> admins = lerTodos();
-        long maxId = admins.stream()
-                .mapToLong(Administrador::getAdminId)
-                .max()
-                .orElse(0L);
+    List<Administrador> admins = lerTodos();
+    long maxId = admins.stream()
+        .map(Administrador::getId)
+        .filter(Objects::nonNull)
+        .mapToLong(Long::longValue)
+        .max()
+        .orElse(0L);
         this.idGenerator.set(maxId);
     }
 
@@ -39,7 +43,7 @@ public class AdministradorRepository {
 
     public Optional<Administrador> buscarPorEmail(String email) {
         return lerTodos().stream()
-                .filter(a -> a.getAdminEmail() != null && a.getAdminEmail().equalsIgnoreCase(email))
+                .filter(a -> a.getEmail() != null && a.getEmail().equalsIgnoreCase(email))
                 .findFirst();
     }
 }

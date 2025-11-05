@@ -1,15 +1,14 @@
 package br.unesp.asilobackend.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class IndicadoresDTO {
-
-	private float indicadores_dto_total_arrecadado;
-
-	private float indicadores_dto_media_doacoes;
-
-	private int indicadores_dto_total_Inadiplentes;
-
-	private int indicadores_dto_total_oadores;
-
-	private int indicadores_dto_total_doacoes;
-
+    private double totalDoacoesMes;
+    private int doadoresAtivos;
+    private double mediaDoacaoPorDoador;
+    private int totalInadimplentes;
+    private int totalDoacoes;
 }

@@ -13,8 +13,6 @@ public class PessoaFisica extends Doador implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private String pessoaFisicaNome;
-
-	private String pessoaFisicaCpf;
+	private String cpf;
 
 }

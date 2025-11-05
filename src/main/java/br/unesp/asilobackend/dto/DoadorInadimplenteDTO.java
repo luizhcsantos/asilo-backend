@@ -1,14 +1,16 @@
 package br.unesp.asilobackend.dto;
 
-import br.unesp.asilobackend.domain.enums.TipoDoador;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class DoadorInadimplenteDTO {
-
-    private int doador_inadimplente_id_doador;
-
-    private String doador_inadimplente_nome;
-
-    private TipoDoador doador_inadimplente_tipo;
-
-    private float doador_inadimplente_valor_em_atraso;
+    private Long doadorInadiplenteDtoId;
+    private String doadorInadiplenteDtoNome;
+    private String doadorInadiplenteDtoEmail;
+    private String doadorInadiplenteDtoTelefone;
+    private int doadorInadiplenteDtoDiasAtraso;
+    private double doadorInadiplenteDtoValorEmAtraso;
+    private String doadorInadiplenteDtoTipo;  // PF ou PJ
 }

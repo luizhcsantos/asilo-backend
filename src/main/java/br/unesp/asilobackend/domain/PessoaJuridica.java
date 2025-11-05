@@ -13,10 +13,7 @@ public class PessoaJuridica extends Doador implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private String pessoaJuridicaNome;
-
-	private String pessoaJuridicaCnpj;
-
-	private String pessoaJuridicaNomeFantasia;
+    private String cnpj;
+    private String inscricaoEstadual;
 
 }

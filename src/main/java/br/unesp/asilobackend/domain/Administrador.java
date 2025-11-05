@@ -8,17 +8,11 @@ import java.io.Serializable;
 
 @Setter
 @Getter
-public class Administrador implements Serializable {
+public class Administrador extends Usuario implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-	private int adminId;
-
-	private String adminNome;
-
-	private String adminEmail;
-
-	private String adminSenha;
+	private String nome;
 
 }

@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component // Anota como um componente Spring para poder ser injetado
+@Component // Anota como um componente Spring para ser injetado no SecurityConfig
 public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
@@ -25,12 +25,11 @@ public class SecurityFilter extends OncePerRequestFilter {
         String token = this.recoverToken(request);
 
         if (token != null) {
-            // Esta é uma lógica simples para "decodificar" os tokens
-            // (ex: "token-doador-1" ou "token-admin-2")
+            // Lógica para "decodificar" os tokens (ex: "token-doador-1")
             try {
                 String[] parts = token.split("-");
                 String role = parts[1]; // 'doador' ou 'admin'
-                String id = parts[2];   // '1' ou '2'
+                String id = parts[2];   // '1', '2', etc.
 
                 List<GrantedAuthority> authorities = new ArrayList<>();
 
@@ -41,24 +40,20 @@ public class SecurityFilter extends OncePerRequestFilter {
                     authorities.add(new SimpleGrantedAuthority("ROLE_DOADOR"));
                 }
 
-                // Criamos o objeto de autenticação
-                // O 'id' do usuário será o "principal" (identificador)
                 var authentication = new UsernamePasswordAuthenticationToken(id, null, authorities);
 
-                // Colocamos o usuário no Contexto de Segurança do Spring
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (Exception e) {
-                // Se o token for inválido (ex: "Bearer null" ou mal formatado)
+                // Token mal formatado
                 SecurityContextHolder.clearContext();
             }
         }
 
-        // Continua para o próximo filtro
         filterChain.doFilter(request, response);
     }
 
-    // Método auxiliar para extrair o token do cabeçalho
+    // Método auxiliar para extrair o token do cabeçalho "Authorization"
     private String recoverToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
         if (authHeader == null) return null;

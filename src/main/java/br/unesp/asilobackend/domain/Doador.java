@@ -1,31 +1,24 @@
 package br.unesp.asilobackend.domain;
 
-import br.unesp.asilobackend.domain.enums.TipoDoador;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
-public class Doador implements Serializable {
+public class Doador extends Usuario implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private Long doadorId;
+    private String telefone;
+    private String nome;
 
-    private String doadorTelefone;
-
-    private String doadorEmail;
-
-    private String doadorSenha;
-
-    private Date doadorDataCriacao;
-
-    private TipoDoador doadorTipo;
+    private List<Doacao> doacoes;
+    private List<Assinatura> assinaturas;
 
 
 }

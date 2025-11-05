@@ -1,9 +1,10 @@
 package br.unesp.asilobackend.domain.enums;
 
 public enum TipoNotificacao {
-
-    NOVACOBRANCA,
+    CONFIRMACAO_EMAIL,
+    NOVA_COBRANCA,
     VENCIMENTO,
-    PAGAMENTO
-
+    PAGAMENTO,
+    PERSONALIZADA,
+    EM_MASSA
 }

@@ -1,28 +1,82 @@
 package br.unesp.asilobackend.repository;
 
-import br.unesp.asilobackend.repository.ArquivoSerializer;
 import br.unesp.asilobackend.domain.Doacao;
+import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
+@Repository
 public class DoacaoRepository {
 
-	private ArquivoSerializer arquivoSerializer;
+    private static final String FILE_NAME = "doacoes.dat";
+    private final ArquivoSerializer serializer;
+    private final AtomicLong idGenerator = new AtomicLong(0);
 
-	public boolean salvar(Doacao doacao) {
-		return false;
-	}
+    public DoacaoRepository() {
+        this.serializer = new ArquivoSerializer();
+        
+        List<Doacao> doacoes = lerTodos();
+        long maxId = doacoes.stream()
+            .map(Doacao::getId)
+            .filter(Objects::nonNull)
+            .mapToLong(Long::longValue)
+            .max()
+            .orElse(0L);
+        this.idGenerator.set(maxId);
+    }
 
-	public Doacao buscarPorId(int idDoacao) {
-		return null;
-	}
+    private List<Doacao> lerTodos() {
+        Object data = serializer.lerArquivo(FILE_NAME);
+        if (data instanceof List<?> list) {
+            if (!list.isEmpty() && list.get(0) instanceof Doacao) {
+                return (List<Doacao>) list;
+            }
+        }
+        return new ArrayList<>();
+    }
 
-	public Doacao buscarPorDoador(int idDoaador) {
-		return null;
-	}
+    public synchronized Doacao salvar(Doacao doacao) {
+        List<Doacao> doacoes = lerTodos();
 
-	public List<Doacao> buscarAll() {
-		return null;
-	}
+        if (doacao.getId() == null) {
+            doacao.setId(idGenerator.incrementAndGet());
+            doacoes.add(doacao);
+        } else {
+            Optional<Doacao> existente = doacoes.stream()
+                    .filter(d -> d.getId() != null && d.getId().equals(doacao.getId()))
+                    .findFirst();
+            
+            if (existente.isPresent()) {
+                doacoes.remove(existente.get());
+            }
+            doacoes.add(doacao);
+        }
 
+        boolean salvou = serializer.escreverArquivo(doacoes, FILE_NAME);
+        if (!salvou) {
+            throw new RuntimeException("Erro ao salvar doação no arquivo.");
+        }
+        return doacao;
+    }
+
+    public Optional<Doacao> buscarPorId(Long idDoacao) {
+        return lerTodos().stream()
+                .filter(d -> d.getId() != null && d.getId().equals(idDoacao))
+                .findFirst();
+    }
+
+    public List<Doacao> buscarPorDoador(Long idDoador) {
+        return lerTodos().stream()
+                .filter(d -> d.getDoador() != null && d.getDoador().getId().equals(idDoador))
+                .collect(Collectors.toList());
+    }
+
+    public List<Doacao> buscarTodos() {
+        return lerTodos();
+    }
 }

@@ -1,16 +1,18 @@
 package br.unesp.asilobackend.service;
 
-import br.unesp.asilobackend.domain.Doador;
-import br.unesp.asilobackend.domain.PessoaFisica;
-import br.unesp.asilobackend.domain.PessoaJuridica;
-import br.unesp.asilobackend.domain.enums.TipoDoador;
-import br.unesp.asilobackend.dto.PessoaFisicaDTO;
-import br.unesp.asilobackend.dto.PessoaJuridicaDTO;
-import br.unesp.asilobackend.repository.AdministradorRepository;
-import br.unesp.asilobackend.repository.DoadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import br.unesp.asilobackend.domain.Doador;
+import br.unesp.asilobackend.domain.PessoaFisica;
+import br.unesp.asilobackend.domain.PessoaJuridica;
+import br.unesp.asilobackend.dto.PessoaFisicaRequestDTO;
+import br.unesp.asilobackend.dto.PessoaFisicaResponseDTO;
+import br.unesp.asilobackend.dto.PessoaJuridicaRequestDTO;
+import br.unesp.asilobackend.dto.PessoaJuridicaResponseDTO;
+import br.unesp.asilobackend.repository.AdministradorRepository;
+import br.unesp.asilobackend.repository.DoadorRepository;
 
 @Service
 public class DoadorService {
@@ -32,7 +34,7 @@ public class DoadorService {
     /**
      * Cadastra uma nova Pessoa Física
      */
-    public PessoaFisica salvarPessoaFisica(PessoaFisicaDTO dto) throws Exception {
+    public PessoaFisicaResponseDTO salvarPessoaFisica(PessoaFisicaRequestDTO dto) throws Exception {
         validarSenha(dto.getPessoaFisicaDtoSenha());
 
         // Validar se o email já existe (em doadores OU admins)
@@ -47,23 +49,32 @@ public class DoadorService {
         }
 
         PessoaFisica pf = new PessoaFisica();
-        pf.setPessoaFisicaNome(dto.getPessoaFisicaDtoNome());
-        pf.setDoadorEmail(dto.getPessoaFisicaDtoEmail());
-        pf.setDoadorTelefone(dto.getPessoaFisicaDtoTelefone());
-        pf.setDoadorTipo(TipoDoador.FISICO); // Define o tipo
-        pf.setPessoaFisicaCpf(dto.getPessoaFisicaDtoCpf());
+        // Mapear DTO -> Domínio (nomes de campos atualizados)
+        pf.setNome(dto.getPessoaFisicaDtoNome());
+        pf.setEmail(dto.getPessoaFisicaDtoEmail());
+        pf.setTelefone(dto.getPessoaFisicaDtoTelefone());
+        pf.setCpf(dto.getPessoaFisicaDtoCpf());
 
-        // Codifica a senha antes de salvar
-        pf.setDoadorSenha(passwordEncoder.encode(dto.getPessoaFisicaDtoSenha()));
+        // Codifica a senha antes de salvar (armazenada em senhaHash no domínio)
+        pf.setSenhaHash(passwordEncoder.encode(dto.getPessoaFisicaDtoSenha()));
 
-        // Salva no arquivo usando o novo repositório
-        return (PessoaFisica) doadorRepository.save(pf);
+        // Salva no arquivo usando o repositório
+        PessoaFisica salvo = (PessoaFisica) doadorRepository.save(pf);
+
+        // Mapear domínio -> DTO de resposta
+        PessoaFisicaResponseDTO out = new PessoaFisicaResponseDTO();
+        out.setPessoaFisicaDtoNome(salvo.getNome());
+        out.setPessoaFisicaDtoCpf(salvo.getCpf());
+        out.setPessoaFisicaDtoEmail(salvo.getEmail());
+        out.setPessoaFisicaDtoTelefone(salvo.getTelefone());
+        // Não retornamos a senha no DTO de resposta por razões de segurança
+        return out;
     }
 
     /**
      * Cadastra uma nova Pessoa Jurídica
      */
-    public PessoaJuridica salvarPessoaJuridica(PessoaJuridicaDTO dto) throws Exception {
+    public PessoaJuridicaResponseDTO salvarPessoaJuridica(PessoaJuridicaRequestDTO dto) throws Exception {
         validarSenha(dto.getPessoaJuridicaDtoSenha());
 
         // Validar se o email já existe (em doadores OU admins)
@@ -78,17 +89,22 @@ public class DoadorService {
         }
 
         PessoaJuridica pj = new PessoaJuridica();
-        pj.setPessoaJuridicaNome(dto.getPessoaJuridicaDtoNomeFantasia()); // No DTO de PJ, 'nome' é a Razão Social
-        pj.setDoadorEmail(dto.getPessoaJuridicaDtoEmail());
-        pj.setDoadorTelefone(dto.getPessoaJuridicaDtoTelefone());
-        pj.setDoadorTipo(TipoDoador.JURIDICO); // Define o tipo
-        pj.setPessoaJuridicaCnpj(dto.getPessoaJuridicaDtoCnpj());
+        pj.setNome(dto.getPessoaJuridicaDtoNomeFantasia()); // Nome social
+        pj.setEmail(dto.getPessoaJuridicaDtoEmail());
+        pj.setTelefone(dto.getPessoaJuridicaDtoTelefone());
+        pj.setCnpj(dto.getPessoaJuridicaDtoCnpj());
 
-        // Codifica a senha antes de salvar
-        pj.setDoadorSenha(passwordEncoder.encode(dto.getPessoaJuridicaDtoSenha()));
+        pj.setSenhaHash(passwordEncoder.encode(dto.getPessoaJuridicaDtoSenha()));
 
-        // Salva no arquivo usando o novo repositório
-        return (PessoaJuridica) doadorRepository.save(pj);
+        PessoaJuridica salvo = (PessoaJuridica) doadorRepository.save(pj);
+
+        PessoaJuridicaResponseDTO out = new PessoaJuridicaResponseDTO();
+        out.setPessoaJuridicaDtoNomeFantasia(salvo.getNome());
+        out.setPessoaJuridicaDtoCnpj(salvo.getCnpj());
+        out.setPessoaJuridicaDtoEmail(salvo.getEmail());
+        out.setPessoaJuridicaDtoTelefone(salvo.getTelefone());
+        // Não retornamos a senha no DTO de resposta por razões de segurança
+        return out;
     }
 
     public Doador buscarporId(Long id) throws Exception {

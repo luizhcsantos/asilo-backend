@@ -1,31 +1,26 @@
 package br.unesp.asilobackend.domain;
 
-import br.unesp.asilobackend.domain.enums.TipoDoacao;
-import br.unesp.asilobackend.domain.enums.MeioPagamento;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
+@Setter
+@Getter
 public class Doacao implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
-    private int doacao_id;
+    private Long id;
+    private Date data;
+    private Doador doador;
+    // Associação 1-para-1 com Pagamento
+    private Pagamento pagamento;
+    private List<DoacaoItem> itens;
 
-	private float doacao_valor;
-
-	private TipoDoacao doacao_tipo;
-
-	private Date doacao_data;
-
-	private boolean doacao_status;
-
-	private MeioPagamento doacao_meio_pagamento;
-
-	private boolean doacao_anonima;
-
-	private int assinatura_id;
-
-	private int doador_id;
 
 }
