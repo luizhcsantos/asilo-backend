@@ -8,6 +8,7 @@ import java.util.List;
 import br.unesp.asilobackend.domain.enums.MeioPagamento;
 import br.unesp.asilobackend.domain.enums.PeriodicidadeAssinatura;
 import br.unesp.asilobackend.domain.enums.StatusAssinatura;
+import br.unesp.asilobackend.domain.enums.StatusPagamento;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,8 +21,9 @@ public class Assinatura implements Serializable {
 
     private Long id;
     private double valor;
-    private StatusAssinatura status;
+    private StatusAssinatura statusAssinatura;
     private PeriodicidadeAssinatura periodicidade;
+    private StatusPagamento statusPagamento;
     private MeioPagamento meioPagamento;
     private Date dataInicio;
     private int diaPagamento;

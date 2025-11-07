@@ -63,7 +63,7 @@ public class RelatorioService {
                 boolean temDoacao = doacaoRepository.buscarPorDoador(d.getId()).stream()
                     .anyMatch(doacao -> doacao.getData().after(tresMesesAtras));
                 boolean temAssinatura = assinaturaRepository.buscarPorDoador(d.getId()).stream()
-                    .anyMatch(a -> a.getStatus() == StatusAssinatura.ATIVA);
+                    .anyMatch(a -> a.getStatusAssinatura() == StatusAssinatura.ATIVA);
                 return temDoacao || temAssinatura;
             })
             .count();
@@ -83,7 +83,7 @@ public class RelatorioService {
         
         // Busca todas as assinaturas inativas
         List<Assinatura> assinaturasInativas = assinaturaRepository.buscarTodos().stream()
-            .filter(a -> a.getStatus() == StatusAssinatura.INATIVA)
+            .filter(a -> a.getStatusAssinatura() == StatusAssinatura.INATIVA)
             .collect(Collectors.toList());
         
         // Para cada assinatura, cria um DTO com informações do doador
@@ -137,8 +137,8 @@ public class RelatorioService {
             case ASSINATURAS:
                 List<Assinatura> assinaturas = assinaturaRepository.buscarTodos().stream()
                     .filter(a -> a.getDataInicio().after(dataInicio) && 
-                               (a.getStatus() == StatusAssinatura.ATIVA || 
-                                a.getStatus() == StatusAssinatura.INATIVA))
+                               (a.getStatusAssinatura() == StatusAssinatura.ATIVA ||
+                                a.getStatusAssinatura() == StatusAssinatura.INATIVA))
                     .collect(Collectors.toList());
                 relatorio.setAssinaturas(assinaturas);
                 break;

@@ -1,14 +1,16 @@
 package br.unesp.asilobackend.service;
 
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import br.unesp.asilobackend.domain.Administrador;
 import br.unesp.asilobackend.domain.Doador;
 import br.unesp.asilobackend.repository.AdministradorRepository;
 import br.unesp.asilobackend.repository.DoadorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class AutenticacaoService {
@@ -22,6 +24,15 @@ public class AutenticacaoService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private RefreshTokenStore refreshTokenStore;
+
+    @Value("${jwt.refresh-expiration-days}")
+    private int refreshExpirationDays;
+
     // IMPLEMENTAÇÃO DO MÉTODO 'autenticar'
     public String autenticar(String username, String password) throws Exception {
         // 1. Tenta encontrar como Doador
@@ -31,7 +42,7 @@ public class AutenticacaoService {
             // 1a. Verifica se a senha bate
             if (passwordEncoder.matches(password, doador.getSenhaHash())) {
                 // Sucesso! Retorna um "token" simples.
-                return "token-doador-" + doador.getId();
+                return jwtService.generateAccessToken(doador.getEmail());
             }
         }
 
@@ -42,7 +53,7 @@ public class AutenticacaoService {
             // 2a. Verifica se a senha bate
             if (passwordEncoder.matches(password, admin.getSenhaHash())) {
                 // Sucesso! Retorna um "token" simples.
-                return "token-admin-" + admin.getId();
+                return jwtService.generateAccessToken(admin.getEmail());
             }
         }
 
@@ -50,8 +61,52 @@ public class AutenticacaoService {
         throw new Exception("Credenciais inválidas");
     }
 
-
     public boolean solicitarRecuperacaoSenha(String email) {
         return false;
+    }
+
+    private String authenticateAndReturnUsername(String username, String password) throws Exception {
+        // 1. Tenta encontrar como Doador
+        Optional<Doador> doadorOpt = doadorRepository.buscarPorEmail(username);
+        if (doadorOpt.isPresent()) {
+            Doador doador = doadorOpt.get();
+            // 1a. Verifica se a senha bate
+            if (passwordEncoder.matches(password, doador.getSenhaHash())) {
+                // Sucesso! Retornamos o identificador/username (usar email para assunto)
+                return doador.getEmail();
+            }
+        }
+
+        // 2. Tenta encontrar como Administrador
+        Optional<Administrador> adminOpt = administradorRepository.buscarPorEmail(username);
+        if (adminOpt.isPresent()) {
+            Administrador admin = adminOpt.get();
+            // 2a. Verifica se a senha bate
+            if (passwordEncoder.matches(password, admin.getSenhaHash())) {
+                // Sucesso! Retornamos o identificador/username (usar email)
+                return admin.getEmail();
+            }
+        }
+
+        // 3. Se não encontrou ou a senha falhou
+        throw new Exception("Credenciais inválidas");
+    }
+
+    public TokenPair login(String username, String password) throws Exception {
+        String subject = authenticateAndReturnUsername(username, password);
+        String access = jwtService.generateAccessToken(subject);
+        String refresh = refreshTokenStore.createForUsername(subject);
+        return new TokenPair(access, refresh);
+    }
+
+    public TokenPair refresh(String refreshToken) throws Exception {
+        String username = refreshTokenStore.getUsernameIfValid(refreshToken);
+        if (username == null) throw new Exception("refresh token inválido ou expirado");
+
+        // Rotate: revoke old, create new
+        refreshTokenStore.revoke(refreshToken);
+        String newRefresh = refreshTokenStore.createForUsername(username);
+        String newAccess = jwtService.generateAccessToken(username);
+        return new TokenPair(newAccess, newRefresh);
     }
 }

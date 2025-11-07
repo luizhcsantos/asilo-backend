@@ -1,16 +1,17 @@
 package br.unesp.asilobackend.controller;
 
-import br.unesp.asilobackend.dto.LoginRequest;
-import br.unesp.asilobackend.dto.LoginResponse;
-import br.unesp.asilobackend.service.AutenticacaoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import br.unesp.asilobackend.dto.LoginRequest;
+import br.unesp.asilobackend.dto.LoginResponse;
+import br.unesp.asilobackend.service.AutenticacaoService;
+import br.unesp.asilobackend.service.TokenPair;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,14 +26,25 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            // Seu AutenticacaoService parece retornar o token como String
-            String token = autenticacaoService.autenticar(loginRequest.username, loginRequest.password);
-
-            // O frontend espera um objeto JSON com a chave "token"
-            return ResponseEntity.ok(new LoginResponse(token));
+            TokenPair tokenPair = autenticacaoService.login(loginRequest.username, loginRequest.password);
+            return ResponseEntity.ok(new LoginResponse(tokenPair.getToken(), tokenPair.getRefreshToken()));
         } catch (Exception e) {
-            // Idealmente, trate exceções de autenticação (ex: BadCredentialsException)
             return ResponseEntity.status(401).body(Map.of("error", "Credenciais inválidas"));
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> payload) {
+        try {
+            String refreshToken = payload.get("refreshToken");
+            if (refreshToken == null) {
+                return ResponseEntity.status(400).body(Map.of("error", "refreshToken é obrigatório"));
+            }
+
+            TokenPair tokenPair = autenticacaoService.refresh(refreshToken);
+            return ResponseEntity.ok(Map.of("token", tokenPair.getToken(), "refreshToken", tokenPair.getRefreshToken()));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         }
     }
 
