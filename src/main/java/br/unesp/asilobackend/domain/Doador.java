@@ -1,15 +1,14 @@
 package br.unesp.asilobackend.domain;
 
+import java.io.Serial;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.List;
-
 @Getter
 @Setter
-public class Doador extends Usuario implements Serializable {
+public class Doador extends Usuario {
 
     @Serial
     private static final long serialVersionUID = 1L;

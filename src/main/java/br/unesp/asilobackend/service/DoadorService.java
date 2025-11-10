@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import br.unesp.asilobackend.domain.Doador;
 import br.unesp.asilobackend.domain.PessoaFisica;
 import br.unesp.asilobackend.domain.PessoaJuridica;
+import br.unesp.asilobackend.dto.DoadorDTO;
 import br.unesp.asilobackend.dto.PessoaFisicaRequestDTO;
 import br.unesp.asilobackend.dto.PessoaFisicaResponseDTO;
 import br.unesp.asilobackend.dto.PessoaJuridicaRequestDTO;
@@ -109,8 +110,9 @@ public class DoadorService {
         return out;
     }
 
-    public Doador buscarPorId(Long id) throws Exception {
-        return doadorRepository.buscarPorId(id)
-                .orElseThrow(() -> new Exception("Doador não encontrado com a ID "+ id));
+    public DoadorDTO buscarPorId(Long id) throws Exception {
+        Doador doador = doadorRepository.buscarPorId(id)
+        .orElseThrow(() -> new Exception("Doador não encontrado com a ID "+ id));
+        return new DoadorDTO(doador);
     }
 }

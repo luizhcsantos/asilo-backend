@@ -1,14 +1,16 @@
 package br.unesp.asilobackend.repository;
 
-import br.unesp.asilobackend.domain.Doacao;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+
+import br.unesp.asilobackend.domain.Doacao;
+import br.unesp.asilobackend.dto.PagamentoDTO;
 
 @Repository
 public class DoacaoRepository {
@@ -78,5 +80,25 @@ public class DoacaoRepository {
 
     public List<Doacao> buscarTodos() {
         return lerTodos();
+    }
+
+    public List<PagamentoDTO> obterDaocaoDoador(long doadorId) {
+        return lerTodos().stream()
+        .filter(doacao -> doacao.getDoador() != null &&
+        doacao.getDoador().getId().equals(doadorId))
+        .map(Doacao::getPagamento)
+        .filter(Objects::nonNull)
+        .map(p -> {
+            PagamentoDTO dto = new PagamentoDTO(p.getId(), p.getValor());
+            dto.setPagamentoDtoData(p.getData());
+            dto.setPagamentoDtoDataPagamento(p.getDataPagamento());
+            dto.setPagamentoDtoDataVencimento(p.getDataVencimento());
+            dto.setPagamentoDtoStatus(p.getStatus());
+            dto.setPagamentoDtoMeioPagamento(p.getMeioPagamento());
+            dto.setPagamentoDtoCodigoPix(p.getCodigoPix());
+            dto.setPagamentoDtoCodigoBoleto(p.getCodigoBoleto());
+            return dto;
+        })
+        .collect(Collectors.toList());
     }
 }

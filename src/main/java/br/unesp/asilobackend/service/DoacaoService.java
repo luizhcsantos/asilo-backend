@@ -14,6 +14,7 @@ import br.unesp.asilobackend.domain.Doador;
 import br.unesp.asilobackend.domain.Pagamento;
 import br.unesp.asilobackend.dto.DoacaoCreateDTO;
 import br.unesp.asilobackend.dto.DoacaoDetailDTO;
+import br.unesp.asilobackend.dto.DoacaoListItemDTO;
 import br.unesp.asilobackend.dto.PagamentoDTO;
 import br.unesp.asilobackend.repository.DoacaoRepository;
 
@@ -22,14 +23,12 @@ public class DoacaoService {
 
 	@Autowired
 	private DoacaoRepository doacaoRepository;
-
 	@Autowired
 	private PagamentoService pagamentoService;
 
 	/**
 	 * Cria uma doação básica associada ao doador e salva através do repositório.
-	 * Observação: o DTO atualmente não é inspecionado em detalhe aqui (projeto possui muitos métodos
-	 * ainda por implementar). Esta implementação cria o objeto Doacao, associa o doador, define a data
+	 * Esta implementação cria o objeto Doacao, associa o doador, define a data
 	 * e tenta gerar um Pagamento via PagamentoService (se disponível). Retorna o resultado do salvar.
 	 */
 	public boolean criarDoacao(Doador doador, DoacaoCreateDTO doacao) {
@@ -142,6 +141,37 @@ public class DoacaoService {
 			}
 		}
 		return pagamentos;
+	}
+
+	public List<DoacaoListItemDTO> listarDoacoesListItem(Long doadorId) {
+		List<Doacao> doacoes = doacaoRepository.buscarPorDoador(doadorId);
+		List<DoacaoListItemDTO> itens = new ArrayList<>();
+		for (Doacao d : doacoes) {
+			DoacaoListItemDTO dto = new DoacaoListItemDTO();
+			dto.setId(d.getId());
+			if (d.getPagamento() != null) {
+				dto.setValor(d.getPagamento().getValor());
+				// Use a data do pagamento se existir; caso contrário, a data da doação
+				try {
+					// Assuming Pagamento has getData() method; otherwise, fallback
+					java.lang.reflect.Method m = d.getPagamento().getClass().getMethod("getData");
+					Object data = m.invoke(d.getPagamento());
+					if (data instanceof java.util.Date) {
+						dto.setData((java.util.Date) data);
+					} else {
+						dto.setData(d.getData());
+					}
+				} catch (Exception e) {
+					dto.setData(d.getData());
+				}
+			} else {
+				dto.setValor(0.0);
+				dto.setData(d.getData());
+			}
+			dto.setDescricao("Doação");
+			itens.add(dto);
+		}
+		return itens;
 	}
 
 

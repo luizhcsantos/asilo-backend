@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 
 import br.unesp.asilobackend.domain.Assinatura;
+import br.unesp.asilobackend.dto.AssinaturaDTO;
 
 @Repository
 public class AssinaturaRepository {
@@ -85,6 +86,7 @@ public class AssinaturaRepository {
 
         return lerTodos().stream()
                 .filter(a -> a.getDoador() != null && a.getDoador().getId().equals(doadorId))
+                .map(AssinaturaDTO::new)
                 .collect(Collectors.toList());
     }
 }

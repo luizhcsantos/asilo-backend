@@ -1,6 +1,5 @@
 package br.unesp.asilobackend.controller;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 import br.unesp.asilobackend.dto.AssinaturaDTO;
 import br.unesp.asilobackend.dto.DoacaoCreateDTO;
 import br.unesp.asilobackend.dto.DoadorDTO;
-import br.unesp.asilobackend.dto.PagamentoDTO;
 import br.unesp.asilobackend.dto.PessoaFisicaRequestDTO;
 import br.unesp.asilobackend.dto.PessoaFisicaResponseDTO;
 import br.unesp.asilobackend.dto.PessoaJuridicaRequestDTO;
 import br.unesp.asilobackend.dto.PessoaJuridicaResponseDTO;
+import br.unesp.asilobackend.repository.DoadorRepository;
 import br.unesp.asilobackend.service.AssinaturaService;
 import br.unesp.asilobackend.service.DoacaoService;
 import br.unesp.asilobackend.service.DoadorService;
@@ -36,14 +35,11 @@ public class DoadorController {
     @Autowired
     private DoacaoService doacaoService;
     @Autowired
-    private br.unesp.asilobackend.repository.DoadorRepository doadorRepository;
+    private DoadorRepository doadorRepository;
 
     @PostMapping("/pf")
     public ResponseEntity<?> cadastrarPessoaFisica(@RequestBody PessoaFisicaRequestDTO body){
         try {
-            // Nota: O diagrama sugere que o DoadorService
-            // deveria ser renomeado ou a lógica movida, mas mantemos
-            // seu DoadorService existente por enquanto.
             PessoaFisicaResponseDTO novoDoador = doadorService.salvarPessoaFisica(body);
             return ResponseEntity.ok(novoDoador);
         } catch (Exception e) {
@@ -113,27 +109,12 @@ public class DoadorController {
     @GetMapping("/minhas-doacoes")
     public ResponseEntity<?> getMinhasDoacoes() {
         try {
-            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-
-            if (auth == null || !auth.isAuthenticated() || auth.getName() == null) {
-                 return ResponseEntity.status(401).body(Map.of("error", "Não autenticado"));
-            }
-
-            String doadorIdString = auth.getName();
-            Long doadorId;
-
-            try {
-                doadorId = Long.parseLong(doadorIdString);
-            } catch (NumberFormatException e) {
-                return ResponseEntity.status(403).body(Map.of("error", "Token de usuário inválido"));
-            }
-            List<PagamentoDTO> doacoes = doacaoService.obterDoacaoDoador(doadorId); 
-            
-            return ResponseEntity.ok(doacoes);
-
+            Long doadorId = getUsuarioIdLogado();
+            // Usa DTO simplificado para atender ao frontend
+            var itens = doacaoService.listarDoacoesListItem(doadorId);
+            return ResponseEntity.ok(itens);
         } catch (Exception e) {
-            // Captura qualquer outro erro inesperado (ex: falha na serialização)
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -144,10 +125,10 @@ public class DoadorController {
     public ResponseEntity<?> getMinhasAssinaturas() {
         try {
             Long doadorId = getUsuarioIdLogado();
-            List<AssinaturaDTO> assinaturas = assinaturaService.listarMinhasAssinaturas(doadorId);
-            return ResponseEntity.ok(assinaturas);
+            var itens = assinaturaService.listarMinhasAssinaturasListItem(doadorId);
+            return ResponseEntity.ok(itens);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -171,10 +152,13 @@ public class DoadorController {
         if (auth == null || !auth.isAuthenticated() || auth.getName() == null) {
              throw new Exception("Não autenticado");
         }
-        try {
-            return Long.parseLong(auth.getName());
-        } catch (NumberFormatException e) {
-            throw new Exception("Token de usuário inválido");
+        // O SecurityFilter define o 'subject' como email do usuário.
+        // Portanto precisamos buscar o doador pelo email e retornar seu ID.
+        String email = auth.getName();
+        var doadorOpt = doadorRepository.buscarPorEmail(email);
+        if (doadorOpt.isEmpty()) {
+            throw new Exception("Doador não encontrado para o email fornecido");
         }
+        return doadorOpt.get().getId();
     }
 }

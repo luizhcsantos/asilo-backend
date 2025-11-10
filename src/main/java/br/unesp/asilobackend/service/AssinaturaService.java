@@ -15,6 +15,7 @@ import br.unesp.asilobackend.domain.Pagamento;
 import br.unesp.asilobackend.domain.enums.StatusAssinatura;
 import br.unesp.asilobackend.domain.enums.StatusPagamento;
 import br.unesp.asilobackend.dto.AssinaturaDTO;
+import br.unesp.asilobackend.dto.AssinaturaListItemDTO;
 import br.unesp.asilobackend.repository.AssinaturaRepository;
 import br.unesp.asilobackend.repository.DoadorRepository;
 import br.unesp.asilobackend.repository.PagamentoRepository;
@@ -39,15 +40,17 @@ public class AssinaturaService {
         }
 
         // Cria nova assinatura com valores do DTO
-        Assinatura assinatura = new Assinatura();
-        assinatura.setValor(dto.getValor());
+    Assinatura assinatura = new Assinatura();
+    assinatura.setValor(dto.getValor());
         assinatura.setStatusAssinatura(StatusAssinatura.ATIVA);
-        assinatura.setPeriodicidade(dto.getPeriodicidade());
-        assinatura.setMeioPagamento(dto.getMeioPagamento());
-        assinatura.setDataInicio(new Date());
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(dto.getDataInicio());
-        assinatura.setDiaPagamento(cal.get(Calendar.DAY_OF_MONTH));
+    assinatura.setPeriodicidade(dto.getPeriodicidade());
+    assinatura.setMeioPagamento(dto.getMeioPagamento());
+    // Se o cliente não manda dataInicio, usamos agora
+    Date inicio = dto.getDataInicio() != null ? dto.getDataInicio() : new Date();
+    assinatura.setDataInicio(inicio);
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(inicio);
+    assinatura.setDiaPagamento(cal.get(Calendar.DAY_OF_MONTH));
 
         // Busca e associa o doador
         Optional<Doador> optDoador = doadorRepository.buscarPorId(idDoador);
@@ -82,17 +85,20 @@ public class AssinaturaService {
         return true;
     }
 
-    public boolean cancelarAssinatura(Long id) {
-        Optional<Assinatura> optAssinatura = assinaturaRepository.buscarPorId(id);
-        if (optAssinatura.isEmpty()) {
-            return false;
+    public boolean cancelarAssinatura(Long idAssinatura, Long usuarioId) throws Exception {
+        Optional<Assinatura> assinaturaOpt = assinaturaRepository.buscarPorId(idAssinatura);
+        if (assinaturaOpt.isEmpty()) {
+            throw new Exception("Assinatura não encontrada");
+        }
+        
+        Assinatura assinatura = assinaturaOpt.get();
+        
+        // Regra de segurança: Verifica se o usuário logado é o dono da assinatura
+        if (!assinatura.getDoador().getId().equals(usuarioId)) {
+            throw new Exception("Acesso negado. Você não é o proprietário desta assinatura.");
         }
 
-        Assinatura assinatura = optAssinatura.get();
-        if (assinatura.getStatusAssinatura() == StatusAssinatura.CANCELADA) {
-            return false;
-        }
-
+        // Lógica de negócio:
         assinatura.setStatusAssinatura(StatusAssinatura.CANCELADA);
         assinaturaRepository.salvar(assinatura);
         return true;
@@ -164,8 +170,19 @@ public class AssinaturaService {
 
     public List<AssinaturaDTO> listarMinhasAssinaturas(Long idDoador) {
         List<Assinatura> assinaturas = assinaturaRepository.buscarPorDoador(idDoador);
-        return assinaturas.stream()
-            .map(assinatura -> new AssinaturaDTO(assinatura.getId(), assinatura.getValor(), assinatura.getStatusAssinatura()))
-            .collect(Collectors.toList());
+        return assinaturas.stream().map(a -> {
+            return new AssinaturaDTO(a);
+        }).collect(Collectors.toList());
+    }
+
+    public List<AssinaturaListItemDTO> listarMinhasAssinaturasListItem(Long idDoador) {
+        List<Assinatura> assinaturas = assinaturaRepository.buscarPorDoador(idDoador);
+        return assinaturas.stream().map(a -> {
+            AssinaturaListItemDTO dto = new AssinaturaListItemDTO();
+            dto.setId(a.getId());
+            dto.setAtiva(a.getStatusAssinatura() == StatusAssinatura.ATIVA);
+            dto.setPlano(a.getPeriodicidade() != null ? a.getPeriodicidade().name() : "");
+            return dto;
+        }).collect(Collectors.toList());
     }
 }
