@@ -59,6 +59,7 @@ public class DoadorService {
         pf.setSenhaHash(passwordEncoder.encode(dto.getPessoaFisicaDtoSenha()));
 
         // Salva no arquivo usando o repositório
+        // doadorSalvo = doadorRepository.save(pf); 
         PessoaFisica salvo = (PessoaFisica) doadorRepository.save(pf);
 
         // Mapear domínio -> DTO de resposta
@@ -69,6 +70,7 @@ public class DoadorService {
         out.setPessoaFisicaDtoTelefone(salvo.getTelefone());
         // Não retornamos a senha no DTO de resposta por razões de segurança
         return out;
+        // return new PessoaFisicaResponseDTO((PessoaFisica) doadorSalvo);
     }
 
     /**
@@ -107,7 +109,7 @@ public class DoadorService {
         return out;
     }
 
-    public Doador buscarporId(Long id) throws Exception {
+    public Doador buscarPorId(Long id) throws Exception {
         return doadorRepository.buscarPorId(id)
                 .orElseThrow(() -> new Exception("Doador não encontrado com a ID "+ id));
     }

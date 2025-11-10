@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.unesp.asilobackend.dto.AssinaturaDTO; // Você precisará criar este DTO
+import br.unesp.asilobackend.dto.AssinaturaDTO;
+import br.unesp.asilobackend.dto.DoacaoCreateDTO;
 import br.unesp.asilobackend.dto.DoadorDTO;
 import br.unesp.asilobackend.dto.PagamentoDTO;
 import br.unesp.asilobackend.dto.PessoaFisicaRequestDTO;
@@ -33,6 +35,8 @@ public class DoadorController {
     private AssinaturaService assinaturaService;
     @Autowired
     private DoacaoService doacaoService;
+    @Autowired
+    private br.unesp.asilobackend.repository.DoadorRepository doadorRepository;
 
     @PostMapping("/pf")
     public ResponseEntity<?> cadastrarPessoaFisica(@RequestBody PessoaFisicaRequestDTO body){
@@ -57,25 +61,49 @@ public class DoadorController {
         }
     }
 
+    @PostMapping("/doacao")
+    public ResponseEntity<?> criarDoacao(@RequestBody DoacaoCreateDTO body) {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getName() == null) return ResponseEntity.status(403).body(Map.of("error", "Não autenticado"));
+            String email = auth.getName();
+            var doadorOpt = doadorRepository.buscarPorEmail(email);
+            if (doadorOpt.isEmpty()) return ResponseEntity.status(403).body(Map.of("error", "Usuário não é doador"));
+            boolean sucesso = doacaoService.criarDoacao(doadorOpt.get(), body);
+            if (sucesso) return ResponseEntity.ok(Map.of("success", true));
+            return ResponseEntity.badRequest().body(Map.of("error", "Falha ao criar doação"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/assinatura")
+    public ResponseEntity<?> criarAssinatura(@RequestBody AssinaturaDTO body) {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getName() == null) return ResponseEntity.status(403).body(Map.of("error", "Não autenticado"));
+            String email = auth.getName();
+            var doadorOpt = doadorRepository.buscarPorEmail(email);
+            if (doadorOpt.isEmpty()) return ResponseEntity.status(403).body(Map.of("error", "Usuário não é doador"));
+            boolean sucesso = assinaturaService.criarAssinatura(body, doadorOpt.get().getId());
+            if (sucesso) return ResponseEntity.ok(Map.of("success", true));
+            return ResponseEntity.badRequest().body(Map.of("error", "Falha ao criar assinatura"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     /**
      * 1. Buscar o perfil do doador logado
      */
     @GetMapping("/meu-perfil")
     public ResponseEntity<?> getMeuPerfil() {
-        // A lógica de serviço pegaria o ID do usuário logado no SecurityContext
         try {
-            // Exemplo:
-            // Long usuarioId = SecurityContextUtils.getUsuarioId();
-            // DoadorDTO perfil = doadorService.buscarPorId(usuarioId);
-            // return ResponseEntity.ok(perfil);
-
-            // Retorno Stub (substitua pela lógica real)
-            DoadorDTO stubPerfil = new DoadorDTO();
-            stubPerfil.setNome("Usuário Doador (Stub)");
-            stubPerfil.setEmail("doador@stub.com");
-            return ResponseEntity.ok(stubPerfil);
+            Long doadorId = getUsuarioIdLogado();
+            DoadorDTO perfil = doadorService.buscarPorId(doadorId);
+            return ResponseEntity.ok(perfil);
         } catch (Exception e) {
-            return ResponseEntity.status(404).body(Map.of("error", "Usuário não encontrado: " + e.getMessage()));
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -83,40 +111,70 @@ public class DoadorController {
      * 2. Listar o histórico de doações (pagamentos) do doador logado
      */
     @GetMapping("/minhas-doacoes")
-    public ResponseEntity<List<PagamentoDTO>> getMinhasDoacoes() {
-        // Long usuarioId = SecurityContextUtils.getUsuarioId();
-        // List<PagamentoDTO> doacoes = doacaoService.listarMinhasDoacoes(usuarioId);
-        // return ResponseEntity.ok(doacoes);
-        return ResponseEntity.ok(List.of()); // Stub
+    public ResponseEntity<?> getMinhasDoacoes() {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+
+            if (auth == null || !auth.isAuthenticated() || auth.getName() == null) {
+                 return ResponseEntity.status(401).body(Map.of("error", "Não autenticado"));
+            }
+
+            String doadorIdString = auth.getName();
+            Long doadorId;
+
+            try {
+                doadorId = Long.parseLong(doadorIdString);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.status(403).body(Map.of("error", "Token de usuário inválido"));
+            }
+            List<PagamentoDTO> doacoes = doacaoService.obterDoacaoDoador(doadorId); 
+            
+            return ResponseEntity.ok(doacoes);
+
+        } catch (Exception e) {
+            // Captura qualquer outro erro inesperado (ex: falha na serialização)
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
      * 3. Listar as assinaturas ativas/inativas do doador logado
      */
     @GetMapping("/minhas-assinaturas")
-    public ResponseEntity<List<AssinaturaDTO>> getMinhasAssinaturas() {
-        // Long usuarioId = SecurityContextUtils.getUsuarioId();
-        // List<AssinaturaDTO> assinaturas = assinaturaService.listarMinhasAssinaturas(usuarioId);
-        // return ResponseEntity.ok(assinaturas);
-        return ResponseEntity.ok(List.of()); // Stub
+    public ResponseEntity<?> getMinhasAssinaturas() {
+        try {
+            Long doadorId = getUsuarioIdLogado();
+            List<AssinaturaDTO> assinaturas = assinaturaService.listarMinhasAssinaturas(doadorId);
+            return ResponseEntity.ok(assinaturas);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
      * 4. Cancelar uma assinatura específica do doador logado
      */
+
     @PostMapping("/assinatura/{idAssinatura}/cancelar")
     public ResponseEntity<?> cancelarAssinatura(@PathVariable Long idAssinatura) {
         try {
-            // Long usuarioId = SecurityContextUtils.getUsuarioId();
-            // boolean sucesso = assinaturaService.cancelarAssinatura(idAssinatura, usuarioId);
-            // if(sucesso) {
-            //    return ResponseEntity.ok(Map.of("success", true));
-            // } else {
-            //    return ResponseEntity.status(403).body(Map.of("error", "Não autorizado"));
-            // }
-            return ResponseEntity.ok(Map.of("success", true)); // Stub
+            Long usuarioId = getUsuarioIdLogado();
+            boolean sucesso = assinaturaService.cancelarAssinatura(idAssinatura, usuarioId);
+            return ResponseEntity.ok(Map.of("success", sucesso));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private Long getUsuarioIdLogado() throws Exception {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getName() == null) {
+             throw new Exception("Não autenticado");
+        }
+        try {
+            return Long.parseLong(auth.getName());
+        } catch (NumberFormatException e) {
+            throw new Exception("Token de usuário inválido");
         }
     }
 }

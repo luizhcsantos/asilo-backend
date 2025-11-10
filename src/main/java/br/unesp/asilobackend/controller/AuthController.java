@@ -55,9 +55,11 @@ public class AuthController {
      */
     @PostMapping("/recuperar-senha")
     public ResponseEntity<?> solicitarRecuperacaoSenha(@RequestBody Map<String, String> payload) {
-        // Espera um JSON {"email": "..."}
         try {
             String email = payload.get("email");
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Email não pode ser nulo."));
+            }
             boolean sucesso = autenticacaoService.solicitarRecuperacaoSenha(email);
             return ResponseEntity.ok(Map.of("success", sucesso));
         } catch (Exception e) {

@@ -33,12 +33,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/doador/pf").permitAll()
                         .requestMatchers("/api/doador/pj").permitAll()
-                        // Allow unauthenticated POSTs to doador endpoints (registration)
-                        .requestMatchers(HttpMethod.POST, "/api/doador/**").permitAll()
 
                         // Endpoints Protegidos por Papel (ROLE)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/doador/**").hasRole("DOADOR")
+                        .requestMatchers("/api/doador/**").hasAnyRole("DOADOR", "ADMIN")
 
                         // Todas as outras requisições devem estar autenticadas
                         .anyRequest().authenticated()

@@ -11,6 +11,10 @@ import lombok.Setter;
 @Setter
 public class PagamentoDTO {
 
+    public PagamentoDTO(Long id, double valor) {
+        this.pagamentoDtoId = id;
+        this.pagamentoDtoValor = valor;
+    }
     private Long pagamentoDtoId;
     private double pagamentoDtoValor;
     private Date pagamentoDtoData;

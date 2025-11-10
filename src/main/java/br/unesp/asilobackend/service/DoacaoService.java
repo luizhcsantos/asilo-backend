@@ -14,6 +14,7 @@ import br.unesp.asilobackend.domain.Doador;
 import br.unesp.asilobackend.domain.Pagamento;
 import br.unesp.asilobackend.dto.DoacaoCreateDTO;
 import br.unesp.asilobackend.dto.DoacaoDetailDTO;
+import br.unesp.asilobackend.dto.PagamentoDTO;
 import br.unesp.asilobackend.repository.DoacaoRepository;
 
 @Service
@@ -131,5 +132,18 @@ public class DoacaoService {
 		}
 		return dto;
 	}
+
+    public List<PagamentoDTO> listarMinhasDoacoes(Long doadorId) {
+		List<Doacao> doacoes = doacaoRepository.buscarPorDoador(doadorId);
+		List<PagamentoDTO> pagamentos = new ArrayList<>();
+		for (Doacao d : doacoes) {
+			if (d.getPagamento() != null) {
+				pagamentos.add(new PagamentoDTO(d.getPagamento().getId(), d.getPagamento().getValor()));
+			}
+		}
+		return pagamentos;
+	}
+
+
 
 }

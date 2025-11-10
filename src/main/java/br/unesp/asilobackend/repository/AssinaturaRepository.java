@@ -80,4 +80,11 @@ public class AssinaturaRepository {
     public List<Assinatura> buscarTodos() {
         return lerTodos();
     }
+
+    public List<Assinatura> listarMinhasAssinaturas(long doadorId) {
+
+        return lerTodos().stream()
+                .filter(a -> a.getDoador() != null && a.getDoador().getId().equals(doadorId))
+                .collect(Collectors.toList());
+    }
 }
