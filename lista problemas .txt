@@ -1,0 +1,73 @@
+Principais problemas e correções sugeridas
+
+Repositórios retornando DTOs (violação de camadas)
+Problema:
+DoacaoRepository.obterDaocaoDoador retorna List<PagamentoDTO>.
+AssinaturaRepository.listarMinhasAssinaturas faz .map(AssinaturaDTO::new) dentro do repositório.
+Isso quebra a separação de responsabilidades (Repository deveria retornar Domain, não DTO).
+Risco: acopla infraestrutura à API pública, dificulta evolução e testes.
+Correção:
+Mover a montagem de DTOs para os Services.
+Em repositórios, padronizar retorno como entidades: Doacao, Assinatura, Pagamento, etc.
+Inconsistência de tipos no AssinaturaRepository
+Problema:
+Método listarMinhasAssinaturas tem assinatura List<Assinatura> mas faz .map(AssinaturaDTO::new) e, portanto, retorna List<AssinaturaDTO> na prática.
+Risco: Erro de compilação ou, se “passar”, incoerência de tipos.
+Correção:
+Ou retornar List<Assinatura> (remover map para DTO).
+Ou trocar a assinatura para List<AssinaturaDTO> e mover esse método para o Service.
+DTOs com campos “não convencionais” e sem getters
+Problema:
+DoacaoDetailDTO possui campos privados com nomes como doacao_detail_dto_valor, sem getters/setters nem anotações JSON.
+Risco:
+Jackson não serializa esses campos (sem getters), e o frontend recebe objeto vazio.
+Correção:
+Adicionar getters/setters (ex. com Lombok @Getter/@Setter) e nomes de propriedades simples (id, valor, data, meioPagamento, etc) ou anotar com @JsonProperty.
+Alternativamente, usar um DTO simples para listagem (como já fizemos com DoacaoListItemDTO).
+Divergência entre DTOs esperados pelo frontend e pelo backend
+Situação:
+Frontend de listagem usa Doacoes.tsx (id, valor, data, descricao) e Assinaturas.tsx (id, ativa, plano).
+Backend originalmente retornava objetos diferentes (DoacaoDetailDTO ou PagamentoDTO).
+O que já fizemos correto:
+Criamos DoacaoListItemDTO e AssinaturaListItemDTO e ajustamos os endpoints para alinharem com o frontend.
+Ação recomendada:
+Garantir que todos endpoints usados pelo frontend retornem esses DTOs “list item” estáveis.
+Manter DTOs de “detalhes” separados, se necessário, para telas de detalhes.
+Identidade do usuário no Security e Controllers
+Problema anterior:
+Controller assumia auth.getName() como ID numérico, mas SecurityFilter coloca o email no principal.
+Correção aplicada:
+getUsuarioIdLogado() agora resolve o email do token e busca o doador no repositório para obter o ID. Isso está alinhado.
+Naming e consistência
+Problema:
+DoacaoRepository.obterDaocaoDoador tem “Daocao” (typo).
+Correção:
+Renomear para obterDoacaoDoador (e ajustar chamadas).
+Construtores e getters de DTOs usados no Service
+Problema que causou falha de inicialização:
+AssinaturaDTO estava simplificado demais e o Service chamava métodos/ construtores que não existiam.
+Correção aplicada:
+Restauramos AssinaturaDTO com campos e construtores exigidos e ajustamos o Service para usar new AssinaturaDTO(a) e tratar dataInicio nula.
+O que o diagrama deveria refletir para ficar “ok”
+
+Repositories:
+Operam apenas com Domain (Assinatura, Doacao, Pagamento, etc).
+Services:
+Fazem a orquestração, regras e mapeamento para DTO (listagem, detalhes, criação).
+Controllers:
+Chamam Services e expõem apenas DTOs estáveis para o frontend.
+DTOs “list item”:
+Simples, com nomes canônicos, getters/setters, sem reflection.
+Autenticação:
+Principal = email; Controllers resolvem ID do doador via repositório (como implementado).
+Impacto prático nas páginas “Minhas Doações” e “Minhas Assinaturas”
+
+Com os endpoints atuais retornando DoacaoListItemDTO e AssinaturaListItemDTO, as páginas devem listar corretamente.
+Se aparecer lista vazia:
+Confirme que o email do token é o mesmo do doador que tem dados salvos.
+Verifique os arquivos .dat persistidos e valores de doadorId associados às doações/assinaturas.
+Quer que eu:
+
+Renomeie o método obterDaocaoDoador no repositório e alinhe todos os usos?
+Padronize todos os repositórios para nunca retornarem DTOs e mova quaisquer mapeamentos restantes para Services?
+Ajuste DoacaoDetailDTO com getters/setters padronizados para uso futuro?
