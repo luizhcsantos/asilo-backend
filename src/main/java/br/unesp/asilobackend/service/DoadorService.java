@@ -69,7 +69,7 @@ public class DoadorService {
         out.setPessoaFisicaDtoCpf(salvo.getCpf());
         out.setPessoaFisicaDtoEmail(salvo.getEmail());
         out.setPessoaFisicaDtoTelefone(salvo.getTelefone());
-        // Não retornamos a senha no DTO de resposta por razões de segurança
+        // Não retorna a senha no DTO de resposta por razões de segurança
         return out;
         // return new PessoaFisicaResponseDTO((PessoaFisica) doadorSalvo);
     }
@@ -106,7 +106,7 @@ public class DoadorService {
         out.setPessoaJuridicaDtoCnpj(salvo.getCnpj());
         out.setPessoaJuridicaDtoEmail(salvo.getEmail());
         out.setPessoaJuridicaDtoTelefone(salvo.getTelefone());
-        // Não retornamos a senha no DTO de resposta por razões de segurança
+        // Não retorna a senha no DTO de resposta por razões de segurança
         return out;
     }
 

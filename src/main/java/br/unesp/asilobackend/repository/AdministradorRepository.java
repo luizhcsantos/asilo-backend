@@ -46,4 +46,29 @@ public class AdministradorRepository {
                 .filter(a -> a.getEmail() != null && a.getEmail().equalsIgnoreCase(email))
                 .findFirst();
     }
+
+    public synchronized Administrador salvar(Administrador admin) {
+        List<Administrador> todos = lerTodos();
+        if (admin.getId() == null) {
+            long nextId = idGenerator.incrementAndGet();
+            admin.setId(nextId);
+        } else {
+            // remove qualquer existente com o mesmo id para atualizar
+            todos.removeIf(a -> Objects.equals(a.getId(), admin.getId()));
+        }
+        todos.add(admin);
+        serializer.escreverArquivo(todos, FILE_NAME);
+        return admin;
+    }
+
+    public synchronized void salvarTodos(List<Administrador> admins) {
+        long maxId = admins.stream()
+            .map(Administrador::getId)
+            .filter(Objects::nonNull)
+            .mapToLong(Long::longValue)
+            .max()
+            .orElse(0L);
+        this.idGenerator.set(maxId);
+        serializer.escreverArquivo(admins, FILE_NAME);
+    }
 }

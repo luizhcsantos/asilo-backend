@@ -42,7 +42,7 @@ public class AutenticacaoService {
             // 1a. Verifica se a senha bate
             if (passwordEncoder.matches(password, doador.getSenhaHash())) {
                 // Sucesso! Retorna um "token" simples.
-                return jwtService.generateAccessToken(doador.getEmail());
+                return jwtService.generateAccessToken(doador.getEmail(), "ROLE_DOADOR");
             }
         }
 
@@ -53,7 +53,7 @@ public class AutenticacaoService {
             // 2a. Verifica se a senha bate
             if (passwordEncoder.matches(password, admin.getSenhaHash())) {
                 // Sucesso! Retorna um "token" simples.
-                return jwtService.generateAccessToken(admin.getEmail());
+                return jwtService.generateAccessToken(admin.getEmail(), "ROLE_ADMIN");
             }
         }
 
@@ -92,9 +92,17 @@ public class AutenticacaoService {
         throw new Exception("Credenciais inválidas");
     }
 
+    private String determineRole(String username) {
+        if (administradorRepository.buscarPorEmail(username).isPresent()) {
+            return "ROLE_ADMIN";
+        }
+        return "ROLE_DOADOR";
+    }
+
     public TokenPair login(String username, String password) throws Exception {
         String subject = authenticateAndReturnUsername(username, password);
-        String access = jwtService.generateAccessToken(subject);
+        String role = determineRole(subject);
+        String access = jwtService.generateAccessToken(subject, role);
         String refresh = refreshTokenStore.createForUsername(subject);
         return new TokenPair(access, refresh);
     }
@@ -106,7 +114,8 @@ public class AutenticacaoService {
         // Rotate: revoke old, create new
         refreshTokenStore.revoke(refreshToken);
         String newRefresh = refreshTokenStore.createForUsername(username);
-        String newAccess = jwtService.generateAccessToken(username);
+        String role = determineRole(username);
+        String newAccess = jwtService.generateAccessToken(username, role);
         return new TokenPair(newAccess, newRefresh);
     }
 }
